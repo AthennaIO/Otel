@@ -25,7 +25,7 @@ export class OtelImpl extends Macroable {
 
   /**
    * Verify if the OpenTelemetry is enabled.
-   * 
+   *
    * @example
    * ```ts
    * if (Otel.isEnabled()) {
@@ -38,9 +38,9 @@ export class OtelImpl extends Macroable {
   }
 
   /**
-   * Start the OpenTelemetry SDK instance. Will only start if the 
+   * Start the OpenTelemetry SDK instance. Will only start if the
    * OpenTelemetry is enabled in the `config/otel.ts` file.
-   * 
+   *
    * @example
    * ```ts
    * Otel.start()
@@ -58,7 +58,7 @@ export class OtelImpl extends Macroable {
 
   /**
    * Gracefully shutdown the OpenTelemetry SDK instance.
-   * 
+   *
    * @example
    * ```ts
    * await Otel.close()
@@ -70,13 +70,13 @@ export class OtelImpl extends Macroable {
 
   /**
    * Automatically start a span and end it after the closure is executed.
-   * 
+   *
    * @example
    * ```ts
    * Otel.record('my.operation', () => {
    *   console.log('my operation')
    * })
-   * 
+   *
    * Otel.record('my.operation', () => {
    *   console.log('my operation')
    * })
@@ -90,15 +90,17 @@ export class OtelImpl extends Macroable {
     return tracer.startActiveSpan(name, span => {
       try {
         const result = closure(span)
-        
-        if (result instanceof Promise) {
-          return result.then(value => {
-            span.end()
 
-            return value
-          }).catch(error => {
-            throw this.handleRecordError(error, span)
-          })
+        if (result instanceof Promise) {
+          return result
+            .then(value => {
+              span.end()
+
+              return value
+            })
+            .catch(error => {
+              throw this.handleRecordError(error, span)
+            })
         }
 
         span.end()
@@ -111,13 +113,13 @@ export class OtelImpl extends Macroable {
   }
 
   /**
-   * Get the current span from the context. Will return `undefined` if no 
+   * Get the current span from the context. Will return `undefined` if no
    * span is active.
-   * 
+   *
    * @example
    * ```ts
    * const span = Otel.getCurrentSpan()
-   * 
+   *
    * span?.setAttributes({ 'hello': 'world' })
    * ```
    */
