@@ -10,7 +10,7 @@
 import { Config } from '@athenna/config'
 import { Macroable } from '@athenna/common'
 import { NodeSDK } from '@opentelemetry/sdk-node'
-import { context, propagation, trace, SpanStatusCode, type Span } from '@opentelemetry/api'
+import { trace, SpanStatusCode, type Span } from '@opentelemetry/api'
 
 export class OtelImpl extends Macroable {
   /**
@@ -85,6 +85,7 @@ export class OtelImpl extends Macroable {
   public record<T>(name: string, closure: (span: Span) => T): T {
     const tracer = trace.getTracer('@athenna/otel')
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return tracer.startActiveSpan(name, span => {
       try {
