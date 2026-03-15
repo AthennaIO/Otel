@@ -1,7 +1,7 @@
 {
   "name": "@athenna/otel",
   "version": "5.0.0",
-  "description": "Template for new projects.",
+  "description": "OpenTelemetry package for Athenna.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
   "bugs": "https://github.com/AthennaIO/Otel/issues",
