@@ -7,6 +7,7 @@
  * file that was distributed with this source code.
  */
 
-export * from '#src/types/SemverNode'
-export * from '#src/types/SpanOptions'
-export * from '#src/types/OtelIgniteOptions'
+import { Facade } from '@athenna/ioc'
+import { OtelImpl } from '#src/otel/OtelImpl'
+
+export const Otel = Facade.createFor<OtelImpl>('Athenna/Core/Otel')

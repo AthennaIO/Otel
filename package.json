@@ -1,12 +1,12 @@
 {
-  "name": "@athenna/template",
+  "name": "@athenna/otel",
   "version": "5.0.0",
   "description": "Template for new projects.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
-  "bugs": "https://github.com/AthennaIO/Template/issues",
-  "repository": "https://github.com/AthennaIO/Template.git",
-  "homepage": "https://github.com/AthennaIO/Template#readme",
+  "bugs": "https://github.com/AthennaIO/Otel/issues",
+  "repository": "https://github.com/AthennaIO/Otel.git",
+  "homepage": "https://github.com/AthennaIO/Otel#readme",
   "keywords": [
     "esm",
     "athenna"
@@ -50,8 +50,10 @@
     "#tests": "./tests/index.js"
   },
   "devDependencies": {
-    "@athenna/common": "^5.17.0",
-    "@athenna/test": "^5.5.0",
+    "@athenna/common": "^5.30.0",
+    "@athenna/config": "^5.6.0",
+    "@athenna/ioc": "^5.2.0",
+    "@athenna/test": "^5.6.0",
     "@athenna/tsconfig": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
@@ -66,7 +68,8 @@
     "eslint-plugin-promise": "^6.6.0",
     "husky": "^3.1.0",
     "lint-staged": "^12.5.0",
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "semver": "^7.7.4"
   },
   "c8": {
     "all": true,
@@ -160,5 +163,19 @@
         }
       ]
     }
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.71.0",
+    "@opentelemetry/core": "^2.6.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.213.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.213.0",
+    "@opentelemetry/instrumentation": "^0.213.0",
+    "@opentelemetry/resources": "^2.6.0",
+    "@opentelemetry/sdk-metrics": "^2.6.0",
+    "@opentelemetry/sdk-node": "^0.213.0",
+    "@opentelemetry/sdk-trace-base": "^2.6.0",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
+    "import-in-the-middle": "^3.0.0"
   }
 }

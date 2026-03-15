@@ -1,5 +1,5 @@
 /**
- * @athenna/template
+ * @athenna/otel
  *
  * (c) João Lenon <lenon@athenna.io>
  *
