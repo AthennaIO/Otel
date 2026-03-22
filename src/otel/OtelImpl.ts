@@ -10,7 +10,7 @@
 import { Config } from '@athenna/config'
 import { Macroable } from '@athenna/common'
 import { NodeSDK } from '@opentelemetry/sdk-node'
-import { trace, SpanStatusCode, type Span } from '@opentelemetry/api'
+import { trace, context, SpanStatusCode, type Span } from '@opentelemetry/api'
 
 export class OtelImpl extends Macroable {
   /**
@@ -125,6 +125,31 @@ export class OtelImpl extends Macroable {
    */
   public getCurrentSpan() {
     return trace.getActiveSpan()
+  }
+
+  /**
+   * Get the trace API from the OpenTelemetry SDK.
+   *
+   * @example
+   * ```ts
+   * const span = Otel.trace.getSpan(Otel.context.active())
+   * ```
+   */
+  public get trace() {
+    return trace
+  }
+
+  /**
+   * Get the current context from the context. Will return `undefined` if no
+   * context is active.
+   *
+   * @example
+   * ```ts
+   * const currentActiveContext = Otel.context.active()
+   * ```
+   */
+  public get context() {
+    return context
   }
 
   /**

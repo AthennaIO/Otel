@@ -1,6 +1,6 @@
 {
   "name": "@athenna/otel",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "OpenTelemetry package for Athenna.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
@@ -49,6 +49,20 @@
     "#src/debug": "./src/debug/index.js",
     "#tests/*": "./tests/*.js",
     "#tests": "./tests/index.js"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.71.0",
+    "@opentelemetry/core": "^2.6.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.213.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.213.0",
+    "@opentelemetry/instrumentation": "^0.213.0",
+    "@opentelemetry/resources": "^2.6.0",
+    "@opentelemetry/sdk-metrics": "^2.6.0",
+    "@opentelemetry/sdk-node": "^0.213.0",
+    "@opentelemetry/sdk-trace-base": "^2.6.0",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
+    "import-in-the-middle": "^3.0.0"
   },
   "devDependencies": {
     "@athenna/common": "^5.31.0",
@@ -164,19 +178,5 @@
         }
       ]
     }
-  },
-  "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.71.0",
-    "@opentelemetry/core": "^2.6.0",
-    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.213.0",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.213.0",
-    "@opentelemetry/instrumentation": "^0.213.0",
-    "@opentelemetry/resources": "^2.6.0",
-    "@opentelemetry/sdk-metrics": "^2.6.0",
-    "@opentelemetry/sdk-node": "^0.213.0",
-    "@opentelemetry/sdk-trace-base": "^2.6.0",
-    "@opentelemetry/semantic-conventions": "^1.40.0",
-    "import-in-the-middle": "^3.0.0"
-  }
+  } 
 }

@@ -8,9 +8,9 @@
  */
 
 import { register } from 'node:module'
-import { Config, Rc } from '@athenna/config'
 import { parse as semverParse } from 'semver'
 import { isAbsolute, resolve } from 'node:path'
+import { Config, EnvHelper, Rc } from '@athenna/config'
 import { Options, Path, Module, File } from '@athenna/common'
 import type { SemverNode, OtelIgniteOptions } from '#src/types'
 import { createAddHookMessageChannel } from 'import-in-the-middle'
@@ -40,6 +40,7 @@ export class OtelIgnite {
     this.options.envPath = this.resolvePath(this.options.envPath)
     this.options.athennaRcPath = this.resolvePath(this.options.athennaRcPath)
 
+    this.setEnvVariablesFile()
     await this.setRcContentAndAppVars()
 
     Path.mergeDirs(Config.get('rc.directories', {}))
@@ -191,6 +192,25 @@ export class OtelIgnite {
     await Rc.setFile(this.options.athennaRcPath)
   }
 
+  /**
+   * Set the env file that the application will use. The env file path will be
+   * automatically resolved by Athenna (using the NODE_ENV variable) if any
+   * path is set.
+   *
+   * In case path is empty:
+   * If NODE_ENV variable it's already set the .env.${NODE_ENV} file will be used.
+   * If not, Athenna will read the .env file and try to find the NODE_ENV value and
+   * then load the environment variables inside the .env.${NODE_ENV} file. If any
+   * NODE_ENV value is found in .env or .env.${NODE_ENV} file does not exist, Athenna
+   * will use the .env file.
+   */
+  public setEnvVariablesFile(): void {
+    if (this.options.envPath) {
+      return EnvHelper.resolveFilePath(this.options.envPath)
+    }
+
+    EnvHelper.resolveFile(true)
+  }
 
   /**
    * Set the application chdir, change the process.cwd method to return the
