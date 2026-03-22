@@ -8,8 +8,8 @@
  */
 
 import { Config } from '@athenna/config'
-import { Macroable } from '@athenna/common'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { Options, Macroable } from '@athenna/common'
 import { trace, context, SpanStatusCode, type Span } from '@opentelemetry/api'
 
 export class OtelImpl extends Macroable {
@@ -157,7 +157,12 @@ export class OtelImpl extends Macroable {
    * set inside the config/otel.ts file.
    */
   private createSDK() {
-    return new NodeSDK(Config.get('otel.sdk'))
+    const options = Options.create(Config.get('otel.sdk'), {
+      metricReaders: [],
+      logRecordProcessors: []
+    })
+
+    return new NodeSDK(options)
   }
 
   /**

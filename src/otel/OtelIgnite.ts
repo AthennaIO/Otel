@@ -20,10 +20,15 @@ export class OtelIgnite {
   private options: OtelIgniteOptions
 
   public setupHooks() {
-    const { registerOptions, waitForAllMessagesAcknowledged } = createAddHookMessageChannel()
-  
-    register('import-in-the-middle/hook.mjs', this.parentURL, registerOptions as any)
-  
+    const { registerOptions, waitForAllMessagesAcknowledged } =
+      createAddHookMessageChannel()
+
+    register(
+      'import-in-the-middle/hook.mjs',
+      this.parentURL,
+      registerOptions as any
+    )
+
     return waitForAllMessagesAcknowledged
   }
 
@@ -173,7 +178,7 @@ export class OtelIgnite {
     if (!pkgJson.athenna) {
       Config.set('rc', {
         ...athennaRc,
-        ...Config.get('rc', {}),
+        ...Config.get('rc', {})
       })
 
       this.options.athennaRcPath = null
