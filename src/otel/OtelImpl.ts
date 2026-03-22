@@ -10,6 +10,7 @@
 import { Config } from '@athenna/config'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { Options, Macroable } from '@athenna/common'
+import { getRPCMetadata, RPCType } from '@opentelemetry/core'
 import { trace, context, SpanStatusCode, type Span } from '@opentelemetry/api'
 
 export class OtelImpl extends Macroable {
@@ -150,6 +151,40 @@ export class OtelImpl extends Macroable {
    */
   public get context() {
     return context
+  }
+
+  /**
+   * Get the HTTP RPC metadata for the current active context.
+   *
+   * @example
+   * ```ts
+   * const httpRPCMetadata = Otel.getHttpRPCMetadata()
+   * ```
+   */
+  public getHttpRPCMetadata() {
+    const rpcMetadata = getRPCMetadata(this.context.active())
+
+    if (rpcMetadata?.type !== RPCType.HTTP) {
+      return null
+    }
+
+    return rpcMetadata
+  }
+
+  /**
+   * Set the route for the HTTP RPC metadata for the current active context.
+   *
+   * @example
+   * ```ts
+   * Otel.setHttpRPCMetadataRoute('/api/v1/users')
+   * ```
+   */
+  public setHttpRPCMetadataRoute(route: string) {
+    const rpcMetadata = this.getHttpRPCMetadata()
+
+    if (rpcMetadata && route) {
+      rpcMetadata.route = route
+    }
   }
 
   /**
