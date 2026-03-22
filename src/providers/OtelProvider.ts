@@ -18,13 +18,16 @@ export class OtelProvider extends ServiceProvider {
     this.container.singleton('Athenna/Core/Otel', OtelImpl)
 
     const originalReport = ExceptionHandler.prototype.handle
-    
-    ExceptionHandler.macro('handle', async (ctx) => {
+
+    ExceptionHandler.macro('handle', async ctx => {
       const span = Otel.getCurrentSpan()
 
       if (span) {
         span.recordException(ctx.error)
-        span.setStatus({ code: SpanStatusCode.ERROR, message: ctx?.error?.message })
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: ctx?.error?.message
+        })
       }
 
       return originalReport.call(this, ctx)

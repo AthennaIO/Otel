@@ -10,3 +10,5 @@
 export * from '#src/types/SemverNode'
 export * from '#src/types/SpanOptions'
 export * from '#src/types/OtelIgniteOptions'
+
+export type { NodeSDKConfiguration } from '@opentelemetry/sdk-node'
