@@ -10,7 +10,7 @@
 export interface SpanOptions {
   /**
    * Custom span name.
-   * 
+   *
    * @default `${target.constructor.name}.${property}`
    */
   name?: string

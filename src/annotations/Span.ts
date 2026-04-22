@@ -24,7 +24,7 @@ export function Span(options?: SpanOptions) {
         }
 
         return originalMethod.apply(this, args)
-      }) 
+      })
     }
 
     return descriptor

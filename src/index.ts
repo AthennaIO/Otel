@@ -9,6 +9,12 @@
 
 export * from '#src/types'
 
+export {
+  BatchLogRecordProcessor,
+  SimpleLogRecordProcessor,
+  ConsoleLogRecordExporter
+} from '@opentelemetry/sdk-logs'
+
 export { Span } from '#src/annotations/Span'
 
 export { Otel } from '#src/facades/Otel'
@@ -18,5 +24,9 @@ export { OtelProvider } from '#src/providers/OtelProvider'
 
 export { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base'
 export { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
-export { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
 export { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc'
+export { getNodeAutoInstrumentations } from '#src/helpers/getNodeAutoInstrumentations'
+export { OTLPLogExporter as HttpOTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
+export { OTLPLogExporter as GrpcOTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc'
+export { OTLPTraceExporter as HttpOTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+export { OTLPTraceExporter as GrpcOTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
