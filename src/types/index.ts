@@ -11,5 +11,5 @@ export * from '#src/types/SemverNode'
 export * from '#src/types/SpanOptions'
 export * from '#src/types/OtelIgniteOptions'
 
+export type { Context } from '@opentelemetry/api'
 export type { NodeSDKConfiguration } from '@opentelemetry/sdk-node'
-export type { Context, ContextKey } from '@opentelemetry/api'
