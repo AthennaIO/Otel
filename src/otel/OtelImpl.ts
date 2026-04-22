@@ -13,13 +13,15 @@ import {
   createContextKey,
   SpanStatusCode,
   type Span,
-  type Context,
+  type Context
 } from '@opentelemetry/api'
 
 import { Config } from '@athenna/config'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { Options, Macroable } from '@athenna/common'
 import { getRPCMetadata, RPCType } from '@opentelemetry/core'
+
+const otelCurrentContextBagKey = Symbol.for('athenna.otel.currentContextBag')
 
 export class OtelImpl extends Macroable {
   /**
@@ -181,7 +183,10 @@ export class OtelImpl extends Macroable {
    * const tenantId = Otel.getContextValue(tenantIdKey)
    * ```
    */
-  public getContextValue<T = any>(key: string | symbol, ctx?: Context): T | undefined {
+  public getContextValue<T = any>(
+    key: string | symbol,
+    ctx?: Context
+  ): T | undefined {
     return (ctx || context.active()).getValue(key as any) as T | undefined
   }
 
@@ -193,7 +198,11 @@ export class OtelImpl extends Macroable {
    * const nextContext = Otel.setContextValue(tenantIdKey, 'tenant-1')
    * ```
    */
-  public setContextValue<T = any>(key: string | symbol, value: T, ctx?: Context) {
+  public setContextValue<T = any>(
+    key: string | symbol,
+    value: T,
+    ctx?: Context
+  ) {
     return (ctx || context.active()).setValue(key as any, value)
   }
 
@@ -207,8 +216,82 @@ export class OtelImpl extends Macroable {
    * })
    * ```
    */
-  public withContextValue<T = any, Result = any>(key: string | symbol, value: T, callback: () => Result, ctx?: Context) {
+  public withContextValue<T = any, Result = any>(
+    key: string | symbol,
+    value: T,
+    callback: () => Result,
+    ctx?: Context
+  ) {
     return context.with(this.setContextValue(key, value, ctx), callback)
+  }
+
+  /**
+   * Get a value from the mutable request-scoped context store.
+   *
+   * @example
+   * ```ts
+   * const exampleId = Otel.getCurrentContextValue('exampleId')
+   * ```
+   */
+  public getCurrentContextValue<T = any>(
+    key: string | symbol,
+    ctx?: Context
+  ): T | undefined {
+    return this.getCurrentContextStore(ctx).get(key) as T | undefined
+  }
+
+  /**
+   * Set a value inside the mutable request-scoped context store.
+   *
+   * @example
+   * ```ts
+   * Otel.setCurrentContextValue('exampleId', 'example-id-from-controller')
+   * ```
+   */
+  public setCurrentContextValue<T = any>(
+    key: string | symbol,
+    value: T,
+    ctx?: Context
+  ) {
+    this.getCurrentContextStore(ctx).set(key, value)
+
+    return this
+  }
+
+  /**
+   * Delete a value from the mutable request-scoped context store.
+   *
+   * @example
+   * ```ts
+   * Otel.deleteCurrentContextValue('exampleId')
+   * ```
+   */
+  public deleteCurrentContextValue(
+    key: string | symbol,
+    ctx?: Context
+  ): boolean {
+    return this.getCurrentContextStore(ctx).delete(key)
+  }
+
+  /**
+   * Set multiple values inside the mutable request-scoped context store.
+   *
+   * @example
+   * ```ts
+   * Otel.setCurrentContextValues({ tenantId: 'tenant-1', requestId: 'req-1' })
+   * ```
+   */
+  public setCurrentContextValues(
+    values: Record<string | symbol, unknown>,
+    ctx?: Context
+  ) {
+    const store = this.getCurrentContextStore(ctx)
+
+    for (const key of Reflect.ownKeys(values)) {
+      store.set(key as string | symbol, values[key as keyof typeof values])
+    }
+
+    return this
   }
 
   /**
@@ -256,6 +339,21 @@ export class OtelImpl extends Macroable {
     })
 
     return new NodeSDK(options)
+  }
+
+  /**
+   * Return the mutable request-scoped context store from the active context.
+   */
+  private getCurrentContextStore(ctx?: Context) {
+    const store = (ctx || context.active()).getValue(
+      otelCurrentContextBagKey as any
+    )
+
+    if (!store || !(store instanceof Map)) {
+      throw new Error('Current request context store is not initialized')
+    }
+
+    return store as Map<string | symbol, unknown>
   }
 
   /**
