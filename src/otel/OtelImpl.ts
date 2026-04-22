@@ -7,11 +7,19 @@
  * file that was distributed with this source code.
  */
 
+import {
+  trace,
+  context,
+  createContextKey,
+  SpanStatusCode,
+  type Span,
+  type Context,
+} from '@opentelemetry/api'
+
 import { Config } from '@athenna/config'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { Options, Macroable } from '@athenna/common'
 import { getRPCMetadata, RPCType } from '@opentelemetry/core'
-import { trace, context, SpanStatusCode, type Span } from '@opentelemetry/api'
 
 export class OtelImpl extends Macroable {
   /**
@@ -151,6 +159,56 @@ export class OtelImpl extends Macroable {
    */
   public get context() {
     return context
+  }
+
+  /**
+   * Create a custom OpenTelemetry context key.
+   *
+   * @example
+   * ```ts
+   * const tenantIdKey = Otel.createContextKey('tenant.id')
+   * ```
+   */
+  public createContextKey(name: string) {
+    return createContextKey(name)
+  }
+
+  /**
+   * Get a value from the provided OpenTelemetry context or the active one.
+   *
+   * @example
+   * ```ts
+   * const tenantId = Otel.getContextValue(tenantIdKey)
+   * ```
+   */
+  public getContextValue<T = any>(key: string | symbol, ctx?: Context): T | undefined {
+    return (ctx || context.active()).getValue(key as any) as T | undefined
+  }
+
+  /**
+   * Set a value in the provided OpenTelemetry context or the active one.
+   *
+   * @example
+   * ```ts
+   * const nextContext = Otel.setContextValue(tenantIdKey, 'tenant-1')
+   * ```
+   */
+  public setContextValue<T = any>(key: string | symbol, value: T, ctx?: Context) {
+    return (ctx || context.active()).setValue(key as any, value)
+  }
+
+  /**
+   * Run a callback with a custom value bound to the OpenTelemetry context.
+   *
+   * @example
+   * ```ts
+   * await Otel.withContextValue(tenantIdKey, 'tenant-1', async () => {
+   *   console.log(Otel.getContextValue(tenantIdKey))
+   * })
+   * ```
+   */
+  public withContextValue<T = any, Result = any>(key: string | symbol, value: T, callback: () => Result, ctx?: Context) {
+    return context.with(this.setContextValue(key, value, ctx), callback)
   }
 
   /**

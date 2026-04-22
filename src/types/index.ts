@@ -12,3 +12,4 @@ export * from '#src/types/SpanOptions'
 export * from '#src/types/OtelIgniteOptions'
 
 export type { NodeSDKConfiguration } from '@opentelemetry/sdk-node'
+export type { Context, ContextKey } from '@opentelemetry/api'

@@ -1,6 +1,6 @@
 {
   "name": "@athenna/otel",
-  "version": "5.8.0",
+  "version": "5.10.0",
   "description": "OpenTelemetry package for Athenna.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
@@ -39,7 +39,8 @@
     "./package.json": "./package.json",
     "./testing/plugins": "./src/testing/plugins/index.js",
     "./providers/OtelProvider": "./src/providers/OtelProvider.js",
-    "./http/OtelMiddleware": "./src/http/OtelMiddleware.js"
+    "./http/OtelMiddleware": "./src/http/OtelMiddleware.js",
+    "./http/OtelTerminator": "./src/http/OtelTerminator.js"
   },
   "imports": {
     "#bin/*": "./bin/*.js",

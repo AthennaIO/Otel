@@ -10,7 +10,10 @@
 import { Otel } from '@athenna/otel'
 import { Middleware } from '@athenna/http'
 import type { Context, MiddlewareContract } from '@athenna/http'
-import { ATTR_HTTP_ROUTE, ATTR_HTTP_REQUEST_METHOD } from '@opentelemetry/semantic-conventions';
+import {
+  ATTR_HTTP_ROUTE,
+  ATTR_HTTP_REQUEST_METHOD
+} from '@opentelemetry/semantic-conventions'
 
 @Middleware({ isGlobal: true })
 export class OtelMiddleware implements MiddlewareContract {
