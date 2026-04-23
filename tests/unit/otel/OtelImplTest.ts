@@ -52,6 +52,38 @@ export default class OtelImplTest {
   }
 
   @Test()
+  public async shouldBeAbleToCreateContextWithBindingsAndMutableStore({ assert }: Context) {
+    const otel = new OtelImpl()
+    const tenantIdKey = otel.createContextKey('tenant.id')
+    let values: any = {}
+
+    await otel.withContext(
+      async () => {
+        otel.setCurrentContextValue('exampleId', 'example-id-from-controller')
+
+        values = {
+          tenantId: otel.getContextValue(tenantIdKey),
+          exampleId: otel.getCurrentContextValue('exampleId'),
+          currentBag: context.active().getValue(otelCurrentContextBagKey as any)
+        }
+
+        await Promise.resolve()
+
+        values.exampleIdAfterAwait = otel.getCurrentContextValue('exampleId')
+      },
+      {
+        bindings: [{ key: tenantIdKey, resolve: () => 'tenant-1' }]
+      }
+    )
+
+    assert.equal(values.tenantId, 'tenant-1')
+    assert.equal(values.exampleId, 'example-id-from-controller')
+    assert.equal(values.exampleIdAfterAwait, 'example-id-from-controller')
+    assert.instanceOf(values.currentBag, Map)
+    assert.equal(values.currentBag.get(tenantIdKey), 'tenant-1')
+  }
+
+  @Test()
   public async shouldBeAbleToMutateTheCurrentRequestContextStore({ assert }: Context) {
     const otel = new OtelImpl()
     const bag = new Map<string | symbol, unknown>()
