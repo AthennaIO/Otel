@@ -18,7 +18,7 @@ import {
 
 import { Config } from '@athenna/config'
 import { NodeSDK } from '@opentelemetry/sdk-node'
-import { Options, Macroable } from '@athenna/common'
+import { Is, Options, Macroable } from '@athenna/common'
 import { getRPCMetadata, RPCType } from '@opentelemetry/core'
 
 const otelCurrentContextBagKey = Symbol.for('athenna.otel.currentContextBag')
@@ -226,6 +226,87 @@ export class OtelImpl extends Macroable {
   }
 
   /**
+   * Create a derived OpenTelemetry context with bindings applied and the
+   * mutable request-scoped store initialized.
+   *
+   * @example
+   * ```ts
+   * const nextContext = Otel.createContext({
+   *   bindings: [{ key: tenantIdKey, resolve: () => 'tenant-1' }]
+   * })
+   * ```
+   */
+  public createContext(
+    options: {
+      ctx?: Context
+      bindings?: {
+        key: string | symbol
+        resolve?: () => any
+        includeIfUndefined?: boolean
+      }[]
+      resolveBinding?: (binding: {
+        key: string | symbol
+        resolve?: () => any
+        includeIfUndefined?: boolean
+      }) => any
+    } = {}
+  ) {
+    let nextContext = options.ctx || context.active()
+    const store = this.getOrCreateCurrentContextStore(nextContext)
+
+    if (!nextContext.getValue(otelCurrentContextBagKey as any)) {
+      nextContext = nextContext.setValue(otelCurrentContextBagKey as any, store)
+    }
+
+    for (const binding of options.bindings || []) {
+      const value = options.resolveBinding
+        ? options.resolveBinding(binding)
+        : binding.resolve?.()
+
+      if (Is.Undefined(value) && !binding.includeIfUndefined) {
+        continue
+      }
+
+      store.set(binding.key, value)
+      nextContext = nextContext.setValue(binding.key as any, value)
+    }
+
+    return nextContext
+  }
+
+  /**
+   * Run a callback inside a derived OpenTelemetry context with bindings
+   * applied and the mutable request-scoped store initialized.
+   *
+   * @example
+   * ```ts
+   * await Otel.withContext(async () => {
+   *   console.log(Otel.getCurrentContextValue('tenantId'))
+   * }, {
+   *   bindings: [{ key: tenantIdKey, resolve: () => 'tenant-1' }]
+   * })
+   * ```
+   */
+  public withContext<Result = any>(
+    callback: () => Result,
+    options: {
+      ctx?: Context
+      bindings?: {
+        key: string | symbol
+        resolve?: () => any
+        includeIfUndefined?: boolean
+      }[]
+      resolveBinding?: (binding: {
+        key: string | symbol
+        resolve?: () => any
+        includeIfUndefined?: boolean
+      }) => any
+    } = {}
+  ) {
+    return context.with(this.createContext(options), callback)
+  }
+
+  /**
    * Get a value from the mutable request-scoped context store.
    *
    * @example
@@ -354,6 +435,22 @@ export class OtelImpl extends Macroable {
     }
 
     return store as Map<string | symbol, unknown>
+  }
+
+  /**
+   * Return the current mutable store or create a new one for the provided
+   * context when it does not exist yet.
+   */
+  private getOrCreateCurrentContextStore(ctx?: Context) {
+    const store = (ctx || context.active()).getValue(
+      otelCurrentContextBagKey as any
+    )
+
+    if (store instanceof Map) {
+      return store as Map<string | symbol, unknown>
+    }
+
+    return new Map<string | symbol, unknown>()
   }
 
   /**
