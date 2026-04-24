@@ -7,7 +7,7 @@ export class ContextNotInitializedException extends Exception {
     super({
       code: 'E_CONTEXT_NOT_INITIALIZED',
       message,
-      help: 'Use ({yellow, bold} Otel.withContext(() => { ... })) to initialize the context store.'
+      help: 'Use Otel.withContext(() => { ... }) to initialize the context store.'
     })
   }
 }
