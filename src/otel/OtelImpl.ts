@@ -16,7 +16,6 @@ import {
   type Context
 } from '@opentelemetry/api'
 
-import { Log } from '@athenna/logger'
 import { Config } from '@athenna/config'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { Is, Options, Macroable } from '@athenna/common'
@@ -440,7 +439,9 @@ export class OtelImpl extends Macroable {
     )
 
     if (!store || !(store instanceof Map)) {
-      Log.channelOrVanilla('exception').error(new ContextNotInitializedException())
+      console.error(
+        JSON.stringify(new ContextNotInitializedException(), null, 2)
+      )
 
       return new Map<string | symbol, unknown>()
     }
