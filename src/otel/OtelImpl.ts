@@ -16,6 +16,7 @@ import {
   type Context
 } from '@opentelemetry/api'
 
+import { Log } from '@athenna/logger'
 import { Config } from '@athenna/config'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { Is, Options, Macroable } from '@athenna/common'
@@ -429,15 +430,19 @@ export class OtelImpl extends Macroable {
    */
   private getCurrentContextStore(ctx?: Context) {
     if (Config.is('otel.enabled', false)) {
-      throw new DisabledOtelException('OpenTelemetry is disabled and a context could not be retrieved')
+      throw new DisabledOtelException(
+        'OpenTelemetry is disabled and a context could not be retrieved'
+      )
     }
 
     const store = (ctx || context.active()).getValue(
       otelCurrentContextBagKey as any
-    ) 
+    )
 
     if (!store || !(store instanceof Map)) {
-      throw new ContextNotInitializedException()
+      Log.channelOrVanilla('exception').error(new ContextNotInitializedException())
+
+      return new Map<string | symbol, unknown>()
     }
 
     return store as Map<string | symbol, unknown>
