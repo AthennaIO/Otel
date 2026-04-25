@@ -439,9 +439,7 @@ export class OtelImpl extends Macroable {
     )
 
     if (!store || !(store instanceof Map)) {
-      console.error(
-        JSON.stringify(new ContextNotInitializedException(), null, 2)
-      )
+      console.error(JSON.stringify(new ContextNotInitializedException()))
 
       return new Map<string | symbol, unknown>()
     }
