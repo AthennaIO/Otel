@@ -18,7 +18,13 @@ export class OtelTerminator implements TerminatorContract {
     const span = Otel.getCurrentSpan()
 
     if (span) {
+      const traceparent = Otel.injectContext({}).traceparent
+
       span.setAttribute(ATTR_HTTP_RESPONSE_STATUS_CODE, ctx.status)
+
+      if (traceparent && !ctx.response.hasHeader('traceparent')) {
+        ctx.response.header('traceparent', traceparent)
+      }
     }
   }
 }

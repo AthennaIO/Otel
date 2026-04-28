@@ -142,6 +142,30 @@ export class OtelImpl extends Macroable {
   }
 
   /**
+   * Get the trace id from the current active span.
+   *
+   * @example
+   * ```ts
+   * const traceId = Otel.getTraceId()
+   * ```
+   */
+  public getTraceId() {
+    return this.getCurrentSpan()?.spanContext().traceId
+  }
+
+  /**
+   * Get the span id from the current active span.
+   *
+   * @example
+   * ```ts
+   * const spanId = Otel.getSpanId()
+   * ```
+   */
+  public getSpanId() {
+    return this.getCurrentSpan()?.spanContext().spanId
+  }
+
+  /**
    * Get the trace API from the OpenTelemetry SDK.
    *
    * @example
@@ -342,10 +366,7 @@ export class OtelImpl extends Macroable {
    * const carrier = Otel.injectContext({})
    * ```
    */
-  public injectContext(
-    carrier: Record<string, string>,
-    ctx?: Context
-  ): Record<string, string> {
+  public injectContext(carrier: Record<string, any>, ctx?: Context) {
     propagation.inject(ctx || context.active(), carrier)
 
     return carrier
@@ -359,10 +380,7 @@ export class OtelImpl extends Macroable {
    * const extracted = Otel.extractContext(headers)
    * ```
    */
-  public extractContext(
-    carrier: Record<string, string | string[] | undefined>,
-    ctx?: Context
-  ) {
+  public extractContext(carrier: Record<string, any>, ctx?: Context) {
     return propagation.extract(ctx || context.active(), carrier)
   }
 
@@ -415,6 +433,14 @@ export class OtelImpl extends Macroable {
     key: string | symbol,
     ctx?: Context
   ): T | undefined {
+    if (key === 'traceId') {
+      return this.getTraceId() as T | undefined
+    }
+
+    if (key === 'spanId') {
+      return this.getSpanId() as T | undefined
+    }
+
     return this.getCurrentContextStore(ctx).get(key) as T | undefined
   }
 

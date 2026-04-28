@@ -140,6 +140,42 @@ export default class OtelImplTest {
   }
 
   @Test()
+  public async shouldExposeTraceAndSpanIdsFromTheCurrentActiveSpan({ assert }: Context) {
+    const otel = new OtelImpl()
+    const spanContext = {
+      traceId: 'fedcbafedcbafedcbafedcbafedcbafe',
+      spanId: 'fedcbafedcbafedc',
+      traceFlags: 1
+    }
+    const activeContext = trace.setSpanContext(ROOT_CONTEXT, spanContext)
+    let values: Record<string, unknown> = {}
+
+    context.with(activeContext, () => {
+      values = {
+        traceId: otel.getTraceId(),
+        spanId: otel.getSpanId(),
+        traceIdFromBag: otel.getCurrentContextValue('traceId'),
+        spanIdFromBag: otel.getCurrentContextValue('spanId')
+      }
+    })
+
+    assert.equal(values.traceId, spanContext.traceId)
+    assert.equal(values.spanId, spanContext.spanId)
+    assert.equal(values.traceIdFromBag, spanContext.traceId)
+    assert.equal(values.spanIdFromBag, spanContext.spanId)
+  }
+
+  @Test()
+  public async shouldReturnUndefinedTraceAndSpanIdsWhenThereIsNoActiveSpan({ assert }: Context) {
+    const otel = new OtelImpl()
+
+    assert.isUndefined(otel.getTraceId())
+    assert.isUndefined(otel.getSpanId())
+    assert.isUndefined(otel.getCurrentContextValue('traceId'))
+    assert.isUndefined(otel.getCurrentContextValue('spanId'))
+  }
+
+  @Test()
   public async shouldBeAbleToMutateTheCurrentRequestContextStore({ assert }: Context) {
     const otel = new OtelImpl()
     const bag = new Map<string | symbol, unknown>()
