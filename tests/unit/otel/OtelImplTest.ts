@@ -8,9 +8,10 @@
  */
 
 import { OtelImpl } from '#src/otel/OtelImpl'
-import { context } from '@opentelemetry/api'
+import { context, propagation, trace, ROOT_CONTEXT } from '@opentelemetry/api'
 import { Test, BeforeEach, AfterEach, type Context } from '@athenna/test'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
+import { W3CTraceContextPropagator } from '@opentelemetry/core'
 
 const otelCurrentContextBagKey = Symbol.for('athenna.otel.currentContextBag')
 
@@ -18,6 +19,7 @@ export default class OtelImplTest {
   @BeforeEach()
   public async beforeEach() {
     context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable())
+    propagation.setGlobalPropagator(new W3CTraceContextPropagator())
   }
 
   @AfterEach()
@@ -33,6 +35,13 @@ export default class OtelImplTest {
 
     assert.isUndefined(otel.getContextValue(tenantIdKey))
     assert.equal(otel.getContextValue(tenantIdKey, nextContext), 'tenant-1')
+  }
+
+  @Test()
+  public async shouldExposeTheContextBagSymbolGetter({ assert }: Context) {
+    const otel = new OtelImpl()
+
+    assert.equal(otel.contextBagSymbol, Symbol.for('athenna.otel.currentContextBag'))
   }
 
   @Test()
@@ -84,6 +93,53 @@ export default class OtelImplTest {
   }
 
   @Test()
+  public async shouldBeAbleToInjectAndExtractTraceContextFromCarrier({ assert }: Context) {
+    const otel = new OtelImpl()
+    const spanContext = {
+      traceId: '1234567890abcdef1234567890abcdef',
+      spanId: '1234567890abcdef',
+      traceFlags: 1
+    }
+    const activeContext = trace.setSpanContext(ROOT_CONTEXT, spanContext)
+    const carrier = otel.injectContext({}, activeContext)
+    const extractedContext = otel.extractContext(carrier)
+    const extractedSpanContext = trace.getSpanContext(extractedContext)
+
+    assert.equal(carrier.traceparent, '00-1234567890abcdef1234567890abcdef-1234567890abcdef-01')
+    assert.equal(extractedSpanContext?.traceId, spanContext.traceId)
+    assert.equal(extractedSpanContext?.spanId, spanContext.spanId)
+  }
+
+  @Test()
+  public async shouldBeAbleToRunCallbacksWithExtractedContext({ assert }: Context) {
+    const otel = new OtelImpl()
+    const spanContext = {
+      traceId: 'abcdefabcdefabcdefabcdefabcdefab',
+      spanId: 'abcdefabcdefabcd',
+      traceFlags: 1
+    }
+    const carrier = otel.injectContext({}, trace.setSpanContext(ROOT_CONTEXT, spanContext))
+    const tenantIdKey = otel.createContextKey('tenant.id')
+    let values: Record<string, unknown> = {}
+
+    await otel.withExtractedContext(
+      carrier,
+      async () => {
+        values = {
+          traceId: trace.getSpanContext(context.active())?.traceId,
+          tenantId: otel.getContextValue(tenantIdKey)
+        }
+      },
+      {
+        bindings: [{ key: tenantIdKey, resolve: () => 'tenant-1' }]
+      }
+    )
+
+    assert.equal(values.traceId, spanContext.traceId)
+    assert.equal(values.tenantId, 'tenant-1')
+  }
+
+  @Test()
   public async shouldBeAbleToMutateTheCurrentRequestContextStore({ assert }: Context) {
     const otel = new OtelImpl()
     const bag = new Map<string | symbol, unknown>()
@@ -103,13 +159,32 @@ export default class OtelImplTest {
   }
 
   @Test()
-  public async shouldThrowAClearErrorWhenCurrentRequestContextStoreIsMissing({ assert }: Context) {
+  public async shouldBeAbleToCaptureAndRestoreCurrentContextValues({ assert }: Context) {
+    const otel = new OtelImpl()
+    let snapshot: Record<string, unknown> = {}
+
+    await otel.withContext(async () => {
+      otel.setCurrentContextValue('avatarId', 'avatar-1')
+      otel.setCurrentContextValue('integrationId', 'integration-1')
+      snapshot = otel.captureCurrentContextValues()
+    })
+
+    const restoredContext = otel.restoreCurrentContextValues(snapshot)
+
+    context.with(restoredContext, () => {
+      assert.equal(otel.getCurrentContextValue('avatarId'), 'avatar-1')
+      assert.equal(otel.getCurrentContextValue('integrationId'), 'integration-1')
+    })
+  }
+
+  @Test()
+  public async shouldReturnEmptyValuesWhenCurrentRequestContextStoreIsMissing({ assert }: Context) {
     const otel = new OtelImpl()
 
-    assert.throws(() => otel.getCurrentContextValue('exampleId'), 'Current request context store is not initialized')
-    assert.throws(
-      () => otel.setCurrentContextValue('exampleId', 'example-id-from-controller'),
-      'Current request context store is not initialized'
-    )
+    assert.isUndefined(otel.getCurrentContextValue('exampleId'))
+
+    otel.setCurrentContextValue('exampleId', 'example-id-from-controller')
+
+    assert.isUndefined(otel.getCurrentContextValue('exampleId'))
   }
 }

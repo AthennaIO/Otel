@@ -10,6 +10,7 @@
 import {
   trace,
   context,
+  propagation,
   createContextKey,
   SpanStatusCode,
   type Span,
@@ -166,6 +167,30 @@ export class OtelImpl extends Macroable {
   }
 
   /**
+   * Get the propagation API from the OpenTelemetry SDK.
+   *
+   * @example
+   * ```ts
+   * const carrier = Otel.injectContext({})
+   * ```
+   */
+  public get propagation() {
+    return propagation
+  }
+
+  /**
+   * Get the symbol for the current context bag.
+   *
+   * @example
+   * ```ts
+   * const contextBagSymbol = Otel.contextBagSymbol
+   * ```
+   */
+  public get contextBagSymbol() {
+    return otelCurrentContextBagKey
+  }
+
+  /**
    * Create a custom OpenTelemetry context key.
    *
    * @example
@@ -309,6 +334,76 @@ export class OtelImpl extends Macroable {
   }
 
   /**
+   * Inject the provided OpenTelemetry context or the active one into a
+   * serializable carrier.
+   *
+   * @example
+   * ```ts
+   * const carrier = Otel.injectContext({})
+   * ```
+   */
+  public injectContext(
+    carrier: Record<string, string>,
+    ctx?: Context
+  ): Record<string, string> {
+    propagation.inject(ctx || context.active(), carrier)
+
+    return carrier
+  }
+
+  /**
+   * Extract an OpenTelemetry context from a serializable carrier.
+   *
+   * @example
+   * ```ts
+   * const extracted = Otel.extractContext(headers)
+   * ```
+   */
+  public extractContext(
+    carrier: Record<string, string | string[] | undefined>,
+    ctx?: Context
+  ) {
+    return propagation.extract(ctx || context.active(), carrier)
+  }
+
+  /**
+   * Run a callback with the context extracted from the given carrier plus any
+   * Athenna bindings configured for the execution.
+   *
+   * @example
+   * ```ts
+   * await Otel.withExtractedContext(headers, async () => {
+   *   console.log(Otel.getCurrentSpan())
+   * })
+   * ```
+   */
+  public withExtractedContext<Result = any>(
+    carrier: Record<string, string | string[] | undefined>,
+    callback: () => Result,
+    options: {
+      ctx?: Context
+      bindings?: {
+        key: string | symbol
+        resolve?: () => any
+        includeIfUndefined?: boolean
+      }[]
+      resolveBinding?: (binding: {
+        key: string | symbol
+        resolve?: () => any
+        includeIfUndefined?: boolean
+      }) => any
+    } = {}
+  ) {
+    return context.with(
+      this.createContext({
+        ...options,
+        ctx: this.extractContext(carrier, options.ctx)
+      }),
+      callback
+    )
+  }
+
+  /**
    * Get a value from the mutable request-scoped context store.
    *
    * @example
@@ -378,6 +473,51 @@ export class OtelImpl extends Macroable {
   }
 
   /**
+   * Capture the string-keyed mutable values from the current request-scoped
+   * context store so they can cross async boundaries.
+   *
+   * @example
+   * ```ts
+   * const values = Otel.captureCurrentContextValues()
+   * ```
+   */
+  public captureCurrentContextValues(ctx?: Context) {
+    const values: Record<string, unknown> = {}
+    const store = this.getOrCreateCurrentContextStore(ctx)
+
+    for (const [key, value] of store.entries()) {
+      if (Is.String(key)) {
+        values[key] = value
+      }
+    }
+
+    return values
+  }
+
+  /**
+   * Restore string-keyed mutable values into a derived OpenTelemetry context.
+   *
+   * @example
+   * ```ts
+   * const nextContext = Otel.restoreCurrentContextValues({ tenantId: 'tenant-1' })
+   * ```
+   */
+  public restoreCurrentContextValues(
+    values: Record<string, unknown>,
+    ctx?: Context
+  ) {
+    let nextContext = this.createContext({ ctx })
+    const store = this.getCurrentContextStore(nextContext)
+
+    for (const [key, value] of Object.entries(values)) {
+      store.set(key, value)
+      nextContext = nextContext.setValue(key as any, value)
+    }
+
+    return nextContext
+  }
+
+  /**
    * Get the HTTP RPC metadata for the current active context.
    *
    * @example
@@ -439,9 +579,7 @@ export class OtelImpl extends Macroable {
     )
 
     if (!store || !(store instanceof Map)) {
-      console.error(
-        JSON.stringify(new ContextNotInitializedException(), null, 2)
-      )
+      console.error(JSON.stringify(new ContextNotInitializedException()))
 
       return new Map<string | symbol, unknown>()
     }
