@@ -26,6 +26,8 @@ export { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base'
 export { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 export { getNodeAutoInstrumentations } from '#src/helpers/getNodeAutoInstrumentations'
 
+export { AggregationTemporalityPreference } from '@opentelemetry/exporter-metrics-otlp-http'
+
 export { OTLPLogExporter as GrpcOTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc'
 export { OTLPLogExporter as HttpOTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 export { OTLPLogExporter as ProtoOTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto'
