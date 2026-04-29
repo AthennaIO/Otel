@@ -262,7 +262,7 @@ export class OtelImpl extends Macroable {
    */
   public createHistogram(name: string, options?: MetricOptions) {
     return metrics.getMeter('@athenna/otel').createHistogram(name, options)
-  } 
+  }
 
   /**
    * Create an up-down counter metric.
@@ -285,7 +285,9 @@ export class OtelImpl extends Macroable {
    * ```
    */
   public createObservableCounter(name: string, options?: MetricOptions) {
-    return metrics.getMeter('@athenna/otel').createObservableCounter(name, options)
+    return metrics
+      .getMeter('@athenna/otel')
+      .createObservableCounter(name, options)
   }
 
   /**
@@ -297,7 +299,9 @@ export class OtelImpl extends Macroable {
    * ```
    */
   public createObservableGauge(name: string, options?: MetricOptions) {
-    return metrics.getMeter('@athenna/otel').createObservableGauge(name, options)
+    return metrics
+      .getMeter('@athenna/otel')
+      .createObservableGauge(name, options)
   }
 
   /**
@@ -309,7 +313,9 @@ export class OtelImpl extends Macroable {
    * ```
    */
   public createObservableUpDownCounter(name: string, options?: MetricOptions) {
-    return metrics.getMeter('@athenna/otel').createObservableUpDownCounter(name, options)
+    return metrics
+      .getMeter('@athenna/otel')
+      .createObservableUpDownCounter(name, options)
   }
 
   /**

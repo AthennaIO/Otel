@@ -16,7 +16,7 @@ import { Options } from '@athenna/common'
 
 export function getNodeAutoInstrumentations(
   instrumentations: InstrumentationConfigMap
-) {
+): ReturnType<typeof getNodeAutoInstrumentationsOriginal> {
   instrumentations = Options.create(instrumentations, {
     '@opentelemetry/instrumentation-net': { enabled: false },
     '@opentelemetry/instrumentation-dns': { enabled: false },
