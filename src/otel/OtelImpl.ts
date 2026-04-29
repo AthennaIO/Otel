@@ -10,11 +10,13 @@
 import {
   trace,
   context,
+  metrics,
   propagation,
   createContextKey,
   SpanStatusCode,
   type Span,
-  type Context
+  type Context,
+  type MetricOptions
 } from '@opentelemetry/api'
 
 import { Config } from '@athenna/config'
@@ -203,6 +205,18 @@ export class OtelImpl extends Macroable {
   }
 
   /**
+   * Get the metrics API from the OpenTelemetry SDK.
+   *
+   * @example
+   * ```ts
+   * const meter = Otel.metrics.getMeter('@athenna/otel')
+   * ```
+   */
+  public get metrics() {
+    return metrics
+  }
+
+  /**
    * Get the symbol for the current context bag.
    *
    * @example
@@ -212,6 +226,90 @@ export class OtelImpl extends Macroable {
    */
   public get contextBagSymbol() {
     return otelCurrentContextBagKey
+  }
+
+  /**
+   * Create a counter metric.
+   *
+   * @example
+   * ```ts
+   * const counter = Otel.createCounter('my.counter')
+   * ```
+   */
+  public createCounter(name: string, options?: MetricOptions) {
+    return metrics.getMeter('@athenna/otel').createCounter(name, options)
+  }
+
+  /**
+   * Create a gauge metric.
+   *
+   * @example
+   * ```ts
+   * const gauge = Otel.createGauge('my.gauge')
+   * ```
+   */
+  public createGauge(name: string, options?: MetricOptions) {
+    return metrics.getMeter('@athenna/otel').createGauge(name, options)
+  }
+
+  /**
+   * Create a histogram metric.
+   *
+   * @example
+   * ```ts
+   * const histogram = Otel.createHistogram('my.histogram')
+   * ```
+   */
+  public createHistogram(name: string, options?: MetricOptions) {
+    return metrics.getMeter('@athenna/otel').createHistogram(name, options)
+  } 
+
+  /**
+   * Create an up-down counter metric.
+   *
+   * @example
+   * ```ts
+   * const upDownCounter = Otel.createUpDownCounter('my.upDownCounter')
+   * ```
+   */
+  public createUpDownCounter(name: string, options?: MetricOptions) {
+    return metrics.getMeter('@athenna/otel').createUpDownCounter(name, options)
+  }
+
+  /**
+   * Create an observable counter metric.
+   *
+   * @example
+   * ```ts
+   * const observableCounter = Otel.createObservableCounter('my.observableCounter')
+   * ```
+   */
+  public createObservableCounter(name: string, options?: MetricOptions) {
+    return metrics.getMeter('@athenna/otel').createObservableCounter(name, options)
+  }
+
+  /**
+   * Create an observable gauge metric.
+   *
+   * @example
+   * ```ts
+   * const observableGauge = Otel.createObservableGauge('my.observableGauge')
+   * ```
+   */
+  public createObservableGauge(name: string, options?: MetricOptions) {
+    return metrics.getMeter('@athenna/otel').createObservableGauge(name, options)
+  }
+
+  /**
+   * Create an observable up-down counter metric.
+   *
+   * @example
+   * ```ts
+   * const observableUpDownCounter = Otel.createObservableUpDownCounter('my.observableUpDownCounter')
+   * ```
+   */
+  public createObservableUpDownCounter(name: string, options?: MetricOptions) {
+    return metrics.getMeter('@athenna/otel').createObservableUpDownCounter(name, options)
   }
 
   /**
