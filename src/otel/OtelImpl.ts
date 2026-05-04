@@ -709,7 +709,11 @@ export class OtelImpl extends Macroable {
     )
 
     if (!store || !(store instanceof Map)) {
-      console.error(JSON.stringify(new ContextNotInitializedException()))
+      if (Config.is('otel.contextNotInitializedWarning', true)) {
+        process.stdout.write(
+          `${JSON.stringify(new ContextNotInitializedException())}\n`
+        )
+      }
 
       return new Map<string | symbol, unknown>()
     }
