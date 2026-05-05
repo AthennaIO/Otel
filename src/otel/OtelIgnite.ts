@@ -20,6 +20,10 @@ export class OtelIgnite {
   private options: OtelIgniteOptions
 
   public setupHooks() {
+    if (process.argv[2] === 'test') {
+      return () => Promise.resolve()
+    }
+
     const { registerOptions, waitForAllMessagesAcknowledged } =
       createAddHookMessageChannel()
 
